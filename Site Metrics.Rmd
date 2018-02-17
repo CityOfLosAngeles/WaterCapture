@@ -12,7 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Precipitation this season
 
 ```{r}
-# we are using LA Ducammon to start
 # props to Aida from UCLA stats for writing this web scraping script!
 # Load necessary packages -------------------------------------------------
 
@@ -20,24 +19,34 @@ library(httr)
 library(rvest)
 library(dplyr)
 
+# Read html pages, scrape raw data -----------------------------------------
+# LA DUCOMMUN RAIN GAUGE - recorded twice daily
 
-# Read html page, scrape raw data -----------------------------------------
+ducommun_scrape <- read_html("http://dpw.lacounty.gov/wrd/precip/alert_rain/season_raindata.cfm?id=377")
 
-rain <- read_html("http://dpw.lacounty.gov/wrd/precip/alert_rain/season_raindata.cfm?id=377")
-
-rain_table <- rain %>% html_nodes("td, th") %>% html_text() %>% as.data.frame()
-rain_table <- rain_table[2:nrow(rain_table), 1] %>% as.data.frame()
-
+ducommun_table <- ducommun_scrape %>% html_nodes("td, th") %>% html_text() %>% as.data.frame()
+ducommun_table <- ducommun_table[2:nrow(ducommun_table), 1] %>% as.data.frame()
 
 # Format raw data into table ----------------------------------------------
+ducommun <- split(ducommun_table, 1:4) %>% as.data.frame()
+names(ducommun) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inches")
+rownames(ducommun) <- 1:nrow(ducommun)
+ducommun <- ducommun[2:nrow(ducommun), ]
 
-rain_data <- split(rain_table, 1:4) %>% as.data.frame()
-names(rain_data) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inches")
-rownames(rain_data) <- 1:nrow(rain_data)
-rain_data <- rain_data[2:nrow(rain_data), ]
+# USC RAIN GAUGE - recorded hourly
 
-# See what the dataset looks like
-View(head(rain_data))
+USC_scrape <- read_html("http://dpw.lacounty.gov/wrd/precip/alert_rain/season_raindata.cfm?id=375")
+
+USC_table <- USC_scrape %>% html_nodes("td, th") %>% html_text() %>% as.data.frame()
+USC_table <- USC_table[2:nrow(USC_table), 1] %>% as.data.frame()
+
+# Format raw data into table ----------------------------------------------
+USC <- split(USC_table, 1:4) %>% as.data.frame()
+names(USC) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inches")
+rownames(USC) <- 1:nrow(USC)
+USC <- USC[2:nrow(USC), ]
+
+
 ```
 
 ## Spreading Grounds
@@ -57,7 +66,7 @@ library(dplyr)
 #calculate spreading ground capture this season
 this_season <- spreading %>% select(-Month) %>% group_by(Rain.Season) %>% summarize_all(sum) %>%
   filter(Rain.Season == "2017-2018") %>% select(-Rain.Season)
-#sum all spreadin grounds
+#sum all spreading grounds to get cumulative 
 rowSums(this_season)
 ```
 
@@ -66,6 +75,49 @@ Spreading capture this season = `r rowSums(this_season)`
 ## Rain Barrels and Cisterns
 
 ```{r}
+# Read capture capacity dataset
+# load the RSocrata package if not already
+library(RSocrata)
+# Read rain barrels & cisterns capacity dataset
+barrels <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Rain-Barrels-And-Cisterns-Issued-Through-LAWDP-Reb/a5vt-xsyi")
+#prep data
+barrels <- na.omit(barrels)
+
+# Read precipitation datasets
+# Use 2-gauge average (USC, LA Ducommun)
+# precip_barrels <- mean(USC[1,4], ducommun[1,4])     ---    not working because of whitespace in the dataset
+
+# Perform calculations to get total capture this season
+
+```
+
+## Incidental Capture
+
+```{r}
+# No capacity dataset - use a static numbers of average incidental capture per season
+# Average year capture for San Fernando Valley is 29,900 Acre Ft according to the Stormwater Capture Master Plan
+incidental_avg_SFV <- 29900
+# Average year capture for LA Metro area is 5,100 Acre Ft 
+incidental_avg_LA <- 5100
+
+# Read precipitation datasets
+# For SFV, use average of Schoolhouse DB (gauge 450) and Hollywood resevoir (gauge 312)
+
+# For LA Metro, use average of LA Ducommun and USC
+
+# Perform calculations to get total capture this season
+```
+
+## Green Infrastructure
+
+```{r}
+
+```
+
+## Total Capture - All Methods
+```{r}
+# Create a table that records a time stamp and the total capture per method
+# Write table to Socrata using RSocrata package
 
 ```
 
