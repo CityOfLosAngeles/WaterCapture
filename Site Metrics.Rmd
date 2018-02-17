@@ -111,6 +111,13 @@ incidental_avg_LA <- 5100
 ## Green Infrastructure
 
 ```{r}
+# Read GI projects dataset
+GI <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Rain-Barrels-And-Cisterns-Issued-Through-LAWDP-Reb/a5vt-xsyi")
+
+# Read precipitation datasets
+# Use 2-gauge average (USC, LA Ducommun)
+
+# Perform calculations to get total capture this season
 
 ```
 
