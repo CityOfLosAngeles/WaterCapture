@@ -46,7 +46,42 @@ names(USC) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inches")
 rownames(USC) <- 1:nrow(USC)
 USC <- USC[2:nrow(USC), ]
 
+# SCHOOLHOUSE RAIN GAUGE - recorded twice daily
 
+schoolhouse_scrape <- read_html("http://dpw.lacounty.gov/wrd/precip/alert_rain/season_raindata.cfm?id=450")
+
+schoolhouse_table <- schoolhouse_scrape %>% html_nodes("td, th") %>% html_text() %>% as.data.frame()
+schoolhouse_table <- schoolhouse_table[2:nrow(schoolhouse_table), 1] %>% as.data.frame()
+
+# Format raw data into table ----------------------------------------------
+schoolhouse <- split(schoolhouse_table, 1:4) %>% as.data.frame()
+names(schoolhouse) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inches")
+rownames(schoolhouse) <- 1:nrow(schoolhouse)
+schoolhouse <- schoolhouse[2:nrow(schoolhouse), ]
+
+# HOLLYWOOD RESEVOIR RAIN GAUGE - recorded hourly
+
+hollywood_scrape <- read_html("http://dpw.lacounty.gov/wrd/precip/alert_rain/season_raindata.cfm?id=312")
+
+hollywood_table <- hollywood_scrape %>% html_nodes("td, th") %>% html_text() %>% as.data.frame()
+hollywood_table <- hollywood_table[2:nrow(hollywood_table), 1] %>% as.data.frame()
+
+# Format raw data into table ----------------------------------------------
+hollywood <- split(hollywood_table, 1:4) %>% as.data.frame()
+names(hollywood) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inches")
+rownames(hollywood) <- 1:nrow(hollywood)
+hollywood <- hollywood[2:nrow(hollywood), ]
+
+# Create new precipitation datasets - averages of certain rain guages per region to be more accurate
+# For LA metro, use 2-gauge average (USC, LA Ducommun).
+# used for rain barrels, green infrastructure (GI), and incidental capture
+# LA_precip <- mean(USC[1,4], ducommun[1,4])     ---    not working because of whitespace in the dataset 
+# to continue testing the script, temporarily set to ducommun
+LA_precip = ducommun 
+
+# for San Fernando Valley, use average of Schoolhouse DB (gauge 450) and Hollywood resevoir (gauge 312)
+# to continue testing the script, temporarily set to ducommun
+SFV_precip = ducommun 
 ```
 
 ## Spreading Grounds
@@ -70,7 +105,7 @@ this_season <- spreading %>% select(-Month) %>% group_by(Rain.Season) %>% summar
 rowSums(this_season)
 ```
 
-Spreading capture this season = `r rowSums(this_season)` 
+Spreading capture this season = `r rowSums(this_season)` acre feet.
 
 ## Rain Barrels and Cisterns
 
@@ -83,11 +118,13 @@ barrels <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/
 #prep data
 barrels <- na.omit(barrels)
 
-# Read precipitation datasets
-# Use 2-gauge average (USC, LA Ducommun)
-# precip_barrels <- mean(USC[1,4], ducommun[1,4])     ---    not working because of whitespace in the dataset
+# Read precipitation dataset for LA metro
+glimpse(LA_precip)
 
 # Perform calculations to get total capture this season
+# Precipitation in LA metro * volumes for small, medium, large rain barrels and cisterns
+
+# Total small cistern capacity, today's small cistern capacity
 
 ```
 
