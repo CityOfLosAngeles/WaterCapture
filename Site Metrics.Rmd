@@ -102,10 +102,10 @@ library(dplyr)
 this_season <- spreading %>% select(-Month) %>% group_by(Rain.Season) %>% summarize_all(sum) %>%
   filter(Rain.Season == "2017-2018") %>% select(-Rain.Season)
 #sum all spreading grounds to get cumulative 
-rowSums(this_season)
+spreading_capture <- rowSums(this_season)
 ```
 
-Spreading capture this season = `r rowSums(this_season)` acre feet.
+Spreading Ground capture this season = `r rowSums(this_season)` acre feet.
 
 ## Rain Barrels and Cisterns
 
@@ -122,11 +122,41 @@ barrels <- na.omit(barrels)
 glimpse(LA_precip)
 
 # Perform calculations to get total capture this season
-# Precipitation in LA metro * volumes for small, medium, large rain barrels and cisterns
+# Precipitation in LA metro * Unit Capture (AFY) for rain barrels and small, medium, large cisterns 
+rb_unit_capture = 0.0019
+sc_unit_capture = 0.0076
+mc_unit_capture = 0.0094
+lc_unit_capture = 0.0108
 
-# Total small cistern capacity, today's small cistern capacity
+# Not working because of whitespace
+#total_rainfall_LA <- last(LA_precip$Accumulated_inches)
+#today_rainfall_LA <- last(LA_precip$Amount_inches)
 
+# manually inputting numbers
+head(LA_precip)
+total_rainfall_LA = 1.9 #inches
+today_rainfall_LA = 0 
+                         
+# Total residential rain barrel capture, todays capture
+rb_capture_total <-  total_rainfall_LA * rb_unit_capture * last(barrels$Rain.Barrels)
+rb_capture_today <-  today_rainfall_LA * rb_unit_capture * last(barrels$Rain.Barrels)
+
+# Total small cistern capture, today's small cistern capture
+sc_capture_total = total_rainfall_LA * sc_unit_capture * last(barrels$Residential..Small..Cisterns)
+mc_capture_total = total_rainfall_LA * mc_unit_capture * last(barrels$Medium.Cisterns)
+lc_capture_total = total_rainfall_LA * lc_unit_capture * last(barrels$Large.Cisterns )
+
+sc_capture_today = today_rainfall_LA * sc_unit_capture
+mc_capture_today = today_rainfall_LA * mc_unit_capture
+lc_capture_today = today_rainfall_LA * lc_unit_capture
+
+# Total capture via this method
+barrels_and_cisterns_capture = sum(rb_capture_total, sc_capture_total, mc_capture_total, lc_capture_total)
+barrels_and_cisterns_today = sum(rb_capture_today, sc_capture_today, mc_capture_today, lc_capture_today)
 ```
+
+Rain barrels and cisterns capture this season = `r barrels_and_cisterns_capture` acre feet.
+Rain barrels and cisterns capture today = `r barrels_and_cisterns_today` acre feet.
 
 ## Incidental Capture
 
@@ -137,30 +167,48 @@ incidental_avg_SFV <- 29900
 # Average year capture for LA Metro area is 5,100 Acre Ft 
 incidental_avg_LA <- 5100
 
-# Read precipitation datasets
+# Calculate incidental capture this season and today
+# Percentage of average capture this season represents - Annual rainfall per season assume 18.73 inches 
+incidental_LA_total <- (total_rainfall_LA/18.73) * incidental_avg_LA
+
 # For SFV, use average of Schoolhouse DB (gauge 450) and Hollywood resevoir (gauge 312)
+# For now using LA rainfall
+incidental_SFV_total <- (total_rainfall_LA/18.73) * incidental_avg_LA
 
-# For LA Metro, use average of LA Ducommun and USC
+incidental_LA_today <- (today_rainfall_LA/18.73) * incidental_avg_LA
+incidental_SFV_today <- (today_rainfall_LA/18.73) * incidental_avg_LA
 
-# Perform calculations to get total capture this season
+# Total capture via this method
+incidental_capture = sum(incidental_LA_total, incidental_SFV_total)
+incidental_today = sum(incidental_LA_today, incidental_SFV_today)
 ```
+
+Incidental Capture this season = `r incidental_capture` acre feet.
+Incidental Capture today = `r incidental_today` acre feet.
 
 ## Green Infrastructure
 
 ```{r}
 # Read GI projects dataset
-GI <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Rain-Barrels-And-Cisterns-Issued-Through-LAWDP-Reb/a5vt-xsyi")
+GI <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Green-Infrastructure-Water-Capture-Capacity/pdbw-x3k8")
 
-# Read precipitation datasets
-# Use 2-gauge average (USC, LA Ducommun)
+# Split by project type - need updated dataset
 
-# Perform calculations to get total capture this season
-
+# Total capture via this method
+GI_capture = sum(GI$Drainage.Area...Acres.) * total_rainfall_LA
+GI_today = sum(GI$Drainage.Area...Acres.) * today_rainfall_LA
 ```
+
+Green Infrastructure Capture this season = `r incidental_capture` acre feet.
+Green Infrastructure Capture today = `r incidental_today` acre feet.
 
 ## Total Capture - All Methods
 ```{r}
-# Create a table that records a time stamp and the total capture per method
+# Read table of total capture 
+
+
+# Record today's date time stamp and the capture per method
+
 # Write table to Socrata using RSocrata package
 
 ```
