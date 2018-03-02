@@ -207,22 +207,32 @@ Green Infrastructure Capture today = `r GI_today` acre feet.
 # Read table of total capture 
 total_capture <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Water-Capture-by-Method/xe35-4wsy")
 
-glimpse(total_capture)
+## NOT WORKING - AIDA PLS HELP! :)
 # Create data frame to replace dataset - can switch to append later if we want
 # Record today's date time stamp and the capture per method
 library(lubridate)
 Sys.setenv(TZ="America/Los_Angeles")
 now()
 total_capture$Timestamp <- as.POSIXct(total_capture$Timestamp)
-test <- c(now(), spreading_capture, barrels_and_cisterns_capture, barrels_and_cisterns_today, incidental_capture,	incidental_today, GI_capture, GI_today)
-rbind(total_capture, test)
 
+test <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, barrels_and_cisterns_today, incidental_capture,	incidental_today, GI_capture, GI_today)
+names(test) <- c("Timestamp", "spreading_capture", "barrels_and_cisterns_capture", "barrels_and_cisterns_today", "incidental_capture",	"incidental_today", "GI_capture", "GI_today")
+glimpse(test)
+
+names(total_capture) <- c("Timestamp", "spreading_capture", "barrels_and_cisterns_capture", "barrels_and_cisterns_today", "incidental_capture",	"incidental_today", "GI_capture", "GI_today")
+glimpse(test2)
+
+test2 <- rbind(total_capture, test)
+
+glimpse(total_capture)
 # Write table to Socrata using RSocrata package
 write.socrata(dataframe = lacity,
               dataset_json_endpoint = "https://data.lacity.org/resource/822f-gjp4.json",
               update_mode = "REPLACE",
               email = "chelsea.ursaner@lacity.org",
               password = "California1$")
+
+total_capture[1,1] <- now()
 ```
 
 ## Number of Projects ***Is this included in the final scope?
