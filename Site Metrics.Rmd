@@ -134,7 +134,7 @@ lc_unit_capture = 0.0108
 
 # manually inputting numbers
 head(LA_precip)
-total_rainfall_LA = 1.9 #inches
+total_rainfall_LA = 2.08 #inches
 today_rainfall_LA = 0 
                          
 # Total residential rain barrel capture, todays capture
