@@ -80,8 +80,8 @@ hollywood <- hollywood[2:nrow(hollywood), ]
 LA_precip = ducommun 
 
 # for San Fernando Valley, use average of Schoolhouse DB (gauge 450) and Hollywood resevoir (gauge 312)
-# to continue testing the script, temporarily set to ducommun
-SFV_precip = ducommun 
+# to continue testing the script, temporarily set to hollywood
+SFV_precip = hollywood 
 ```
 
 ## Spreading Grounds
@@ -105,7 +105,7 @@ this_season <- spreading %>% select(-Month) %>% group_by(Rain.Season) %>% summar
 spreading_capture <- rowSums(this_season)
 ```
 
-Spreading Ground capture this season = `r rowSums(this_season)` acre feet.
+Spreading Ground capture this season = `r spreading_capture` acre feet.
 
 ## Rain Barrels and Cisterns
 
@@ -199,17 +199,36 @@ GI_capture = sum(GI$Drainage.Area...Acres.) * total_rainfall_LA
 GI_today = sum(GI$Drainage.Area...Acres.) * today_rainfall_LA
 ```
 
-Green Infrastructure Capture this season = `r incidental_capture` acre feet.
-Green Infrastructure Capture today = `r incidental_today` acre feet.
+Green Infrastructure Capture this season = `r GI_capture` acre feet.
+Green Infrastructure Capture today = `r GI_today` acre feet.
 
 ## Total Capture - All Methods
 ```{r}
 # Read table of total capture 
+total_capture <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Water-Capture-by-Method/xe35-4wsy")
 
-
+glimpse(total_capture)
+# Create data frame to replace dataset - can switch to append later if we want
 # Record today's date time stamp and the capture per method
+library(lubridate)
+Sys.setenv(TZ="America/Los_Angeles")
+now()
+total_capture$Timestamp <- as.POSIXct(total_capture$Timestamp)
+test <- c(now(), spreading_capture, barrels_and_cisterns_capture, barrels_and_cisterns_today, incidental_capture,	incidental_today, GI_capture, GI_today)
+rbind(total_capture, test)
 
 # Write table to Socrata using RSocrata package
+write.socrata(dataframe = lacity,
+              dataset_json_endpoint = "https://data.lacity.org/resource/822f-gjp4.json",
+              update_mode = "REPLACE",
+              email = "chelsea.ursaner@lacity.org",
+              password = "California1$")
+```
 
+## Number of Projects ***Is this included in the final scope?
+```{r}
+# Read dataset
+
+# Get total number of projects
 ```
 
