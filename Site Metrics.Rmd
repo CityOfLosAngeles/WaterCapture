@@ -134,8 +134,12 @@ lc_unit_capture = 0.0108
 
 # manually inputting numbers
 head(LA_precip)
-total_rainfall_LA = 2.08 #inches
+total_rainfall_LA = 2.75 #inches
 today_rainfall_LA = 0 
+
+head(SFV_precip)
+total_rainfall_SFV = 3.73 #inches
+today_rainfall_SFV = 0 
                          
 # Total residential rain barrel capture, todays capture
 rb_capture_total <-  total_rainfall_LA * rb_unit_capture * last(barrels$Rain.Barrels)
@@ -173,10 +177,10 @@ incidental_LA_total <- (total_rainfall_LA/18.73) * incidental_avg_LA
 
 # For SFV, use average of Schoolhouse DB (gauge 450) and Hollywood resevoir (gauge 312)
 # For now using LA rainfall
-incidental_SFV_total <- (total_rainfall_LA/18.73) * incidental_avg_LA
+incidental_SFV_total <- (total_rainfall_SFV/18.73) * incidental_avg_LA
 
 incidental_LA_today <- (today_rainfall_LA/18.73) * incidental_avg_LA
-incidental_SFV_today <- (today_rainfall_LA/18.73) * incidental_avg_LA
+incidental_SFV_today <- (today_rainfall_SFv/18.73) * incidental_avg_LA
 
 # Total capture via this method
 incidental_capture = sum(incidental_LA_total, incidental_SFV_total)
@@ -215,25 +219,23 @@ Sys.setenv(TZ="America/Los_Angeles")
 now()
 total_capture$Timestamp <- as.POSIXct(total_capture$Timestamp)
 
-test <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, barrels_and_cisterns_today, incidental_capture,	incidental_today, GI_capture, GI_today)
-names(test) <- c("Timestamp", "spreading_capture", "barrels_and_cisterns_capture", "barrels_and_cisterns_today", "incidental_capture",	"incidental_today", "GI_capture", "GI_today")
-glimpse(test)
+new_row <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, barrels_and_cisterns_today, incidental_capture,	incidental_today, GI_capture, GI_today)
+new_row$combined <- sum(spreading_capture, barrels_and_cisterns_capture, incidental_capture, GI_capture)
+names(new_row) <- c("Timestamp", "spreading_capture", "barrels_and_cisterns_capture", "barrels_and_cisterns_today", "incidental_capture",	"incidental_today", "GI_capture", "GI_today", "Total.Water.Capture")
 
-names(total_capture) <- c("Timestamp", "spreading_capture", "barrels_and_cisterns_capture", "barrels_and_cisterns_today", "incidental_capture",	"incidental_today", "GI_capture", "GI_today")
-glimpse(test2)
+names(total_capture) <- c("Timestamp", "spreading_capture", "barrels_and_cisterns_capture", "barrels_and_cisterns_today", "incidental_capture",	"incidental_today", "GI_capture", "GI_today", "Total.Water.Capture")
 
-test2 <- rbind(total_capture, test)
+new_dataset <- rbind(total_capture, new_row)
 
-glimpse(total_capture)
 # Write table to Socrata using RSocrata package
-write.socrata(dataframe = lacity,
-              dataset_json_endpoint = "https://data.lacity.org/resource/822f-gjp4.json",
+write.socrata(dataframe = new_dataset,
+              dataset_json_endpoint = "https://data.lacity.org/resource/bnhe-q7a5.json",
               update_mode = "REPLACE",
               email = "chelsea.ursaner@lacity.org",
               password = "California1$")
 
-total_capture[1,1] <- now()
-```
+write.csv(new_dataset, "water_capture_by_method.csv", row.names=F)
+ ```
 
 ## Number of Projects ***Is this included in the final scope?
 ```{r}
