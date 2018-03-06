@@ -157,10 +157,14 @@ lc_capture_today = today_rainfall_LA * lc_unit_capture
 # Total capture via this method
 barrels_and_cisterns_capture = sum(rb_capture_total, sc_capture_total, mc_capture_total, lc_capture_total)
 barrels_and_cisterns_today = sum(rb_capture_today, sc_capture_today, mc_capture_today, lc_capture_today)
+
+#calculate number of projects
+barrels_and_cisterns_projects <- sum(barrels$Rain.Barrels, barrels$Residential..Small..Cisterns, barrels$Medium.Cisterns, barrels$Large.Cisterns)
 ```
 
 Rain barrels and cisterns capture this season = `r barrels_and_cisterns_capture` acre feet.
 Rain barrels and cisterns capture today = `r barrels_and_cisterns_today` acre feet.
+Rain barrels and cisterns number of projects = `r barrels_and_cisterns_projects`
 
 ## Incidental Capture
 
@@ -221,6 +225,8 @@ total_capture$Timestamp <- as.POSIXct(total_capture$Timestamp)
 
 new_row <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, barrels_and_cisterns_today, incidental_capture,	incidental_today, GI_capture, GI_today)
 new_row$combined <- sum(spreading_capture, barrels_and_cisterns_capture, incidental_capture, GI_capture)
+new_row$rain_in <- total_rainfall_LA
+
 names(new_row) <- c("Timestamp", "spreading_capture", "barrels_and_cisterns_capture", "barrels_and_cisterns_today", "incidental_capture",	"incidental_today", "GI_capture", "GI_today", "Total.Water.Capture")
 
 names(total_capture) <- c("Timestamp", "spreading_capture", "barrels_and_cisterns_capture", "barrels_and_cisterns_today", "incidental_capture",	"incidental_today", "GI_capture", "GI_today", "Total.Water.Capture")
