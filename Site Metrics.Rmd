@@ -215,21 +215,21 @@ Green Infrastructure Capture today = `r GI_today` acre feet.
 # Read table of total capture 
 total_capture <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Water-Capture-by-Method/xe35-4wsy")
 
-## NOT WORKING - AIDA PLS HELP! :)
 # Create data frame to replace dataset - can switch to append later if we want
 # Record today's date time stamp and the capture per method
 library(lubridate)
 Sys.setenv(TZ="America/Los_Angeles")
 now()
-total_capture$Timestamp <- as.POSIXct(total_capture$Timestamp)
+## NOT WORKING - AIDA PLS HELP! :)
+total_capture$timestamp <- as.POSIXct(total_capture$timestamp)
 
-new_row <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, barrels_and_cisterns_today, incidental_capture,	incidental_today, GI_capture, GI_today)
+new_row <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, incidental_capture,	GI_capture)
 new_row$combined <- sum(spreading_capture, barrels_and_cisterns_capture, incidental_capture, GI_capture)
 new_row$rain_in <- total_rainfall_LA
 
-names(new_row) <- c("Timestamp", "spreading_capture", "barrels_and_cisterns_capture", "barrels_and_cisterns_today", "incidental_capture",	"incidental_today", "GI_capture", "GI_today", "Total.Water.Capture")
+names(new_row) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capture", "incidental_capture",	"gi_capture", "total_capture", "rain_in")
 
-names(total_capture) <- c("Timestamp", "spreading_capture", "barrels_and_cisterns_capture", "barrels_and_cisterns_today", "incidental_capture",	"incidental_today", "GI_capture", "GI_today", "Total.Water.Capture")
+names(total_capture) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capture", "incidental_capture",	"gi_capture", "total_capture", "rain_in")
 
 new_dataset <- rbind(total_capture, new_row)
 
@@ -241,12 +241,6 @@ write.socrata(dataframe = new_dataset,
               password = "California1$")
 
 write.csv(new_dataset, "water_capture_by_method.csv", row.names=F)
- ```
-
-## Number of Projects ***Is this included in the final scope?
-```{r}
-# Read dataset
-
-# Get total number of projects
 ```
+
 
