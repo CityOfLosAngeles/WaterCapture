@@ -37,7 +37,7 @@ ducommun <- ducommun[2:nrow(ducommun), ]
 formatted <- data.frame(Raw_Count = rep(0, nrow(ducommun)), Amount_inches = rep(0, nrow(ducommun)), Accumulated_inches = rep(0, nrow(ducommun)))
 
 for(i in 2:ncol(ducommun)){
-  formatted[[i-1]] <- ducommun[[i]] %>% str_remove_all(., "\\s") %>% as.numeric()
+  formatted[[i-1]] <- ducommun[[i]] %>% str_replace_all(., "\\s","") %>% as.numeric()
 }
 
 ducommun <- cbind(Date_Time = ducommun[,1], formatted)
