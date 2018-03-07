@@ -18,6 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(httr)
 library(rvest)
 library(dplyr)
+library(stringr)
 
 # Read html pages, scrape raw data -----------------------------------------
 # LA DUCOMMUN RAIN GAUGE - recorded twice daily
@@ -33,6 +34,14 @@ names(ducommun) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inc
 rownames(ducommun) <- 1:nrow(ducommun)
 ducommun <- ducommun[2:nrow(ducommun), ]
 
+formatted <- data.frame(Raw_Count = rep(0, nrow(ducommun)), Amount_inches = rep(0, nrow(ducommun)), Accumulated_inches = rep(0, nrow(ducommun)))
+
+for(i in 2:ncol(ducommun)){
+  formatted[[i-1]] <- ducommun[[i]] %>% str_remove_all(., "\\s") %>% as.numeric()
+}
+
+ducommun <- cbind(Date_Time = ducommun[,1], formatted)
+
 # USC RAIN GAUGE - recorded hourly
 
 USC_scrape <- read_html("http://dpw.lacounty.gov/wrd/precip/alert_rain/season_raindata.cfm?id=375")
@@ -45,6 +54,14 @@ USC <- split(USC_table, 1:4) %>% as.data.frame()
 names(USC) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inches")
 rownames(USC) <- 1:nrow(USC)
 USC <- USC[2:nrow(USC), ]
+
+formatted <- data.frame(Raw_Count = rep(0, nrow(USC)), Amount_inches = rep(0, nrow(USC)), Accumulated_inches = rep(0, nrow(USC)))
+
+for(i in 2:ncol(USC)){
+  formatted[[i-1]] <- USC[[i]] %>% str_remove_all(., "\\s") %>% as.numeric()
+}
+
+USC <- cbind(Date_Time = USC[,1], formatted)
 
 # SCHOOLHOUSE RAIN GAUGE - recorded twice daily
 
@@ -59,6 +76,14 @@ names(schoolhouse) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_
 rownames(schoolhouse) <- 1:nrow(schoolhouse)
 schoolhouse <- schoolhouse[2:nrow(schoolhouse), ]
 
+formatted <- data.frame(Raw_Count = rep(0, nrow(schoolhouse)), Amount_inches = rep(0, nrow(schoolhouse)), Accumulated_inches = rep(0, nrow(schoolhouse)))
+
+for(i in 2:ncol(schoolhouse)){
+  formatted[[i-1]] <- schoolhouse[[i]] %>% str_remove_all(., "\\s") %>% as.numeric()
+}
+
+schoolhouse <- cbind(Date_Time = schoolhouse[,1], formatted)
+
 # HOLLYWOOD RESEVOIR RAIN GAUGE - recorded hourly
 
 hollywood_scrape <- read_html("http://dpw.lacounty.gov/wrd/precip/alert_rain/season_raindata.cfm?id=312")
@@ -71,6 +96,14 @@ hollywood <- split(hollywood_table, 1:4) %>% as.data.frame()
 names(hollywood) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inches")
 rownames(hollywood) <- 1:nrow(hollywood)
 hollywood <- hollywood[2:nrow(hollywood), ]
+
+formatted <- data.frame(Raw_Count = rep(0, nrow(hollywood)), Amount_inches = rep(0, nrow(hollywood)), Accumulated_inches = rep(0, nrow(hollywood)))
+
+for(i in 2:ncol(hollywood)){
+  formatted[[i-1]] <- hollywood[[i]] %>% str_remove_all(., "\\s") %>% as.numeric()
+}
+
+hollywood <- cbind(Date_Time = hollywood[,1], formatted)
 
 # Create new precipitation datasets - averages of certain rain guages per region to be more accurate
 # For LA metro, use 2-gauge average (USC, LA Ducommun).
