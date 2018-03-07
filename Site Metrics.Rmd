@@ -58,7 +58,7 @@ USC <- USC[2:nrow(USC), ]
 formatted <- data.frame(Raw_Count = rep(0, nrow(USC)), Amount_inches = rep(0, nrow(USC)), Accumulated_inches = rep(0, nrow(USC)))
 
 for(i in 2:ncol(USC)){
-  formatted[[i-1]] <- USC[[i]] %>% str_remove_all(., "\\s") %>% as.numeric()
+  formatted[[i-1]] <- USC[[i]] %>% str_replace_all(., "\\s","") %>% as.numeric()
 }
 
 USC <- cbind(Date_Time = USC[,1], formatted)
@@ -79,7 +79,7 @@ schoolhouse <- schoolhouse[2:nrow(schoolhouse), ]
 formatted <- data.frame(Raw_Count = rep(0, nrow(schoolhouse)), Amount_inches = rep(0, nrow(schoolhouse)), Accumulated_inches = rep(0, nrow(schoolhouse)))
 
 for(i in 2:ncol(schoolhouse)){
-  formatted[[i-1]] <- schoolhouse[[i]] %>% str_remove_all(., "\\s") %>% as.numeric()
+  formatted[[i-1]] <- schoolhouse[[i]] %>% str_replace_all(., "\\s","") %>% as.numeric()
 }
 
 schoolhouse <- cbind(Date_Time = schoolhouse[,1], formatted)
@@ -100,7 +100,7 @@ hollywood <- hollywood[2:nrow(hollywood), ]
 formatted <- data.frame(Raw_Count = rep(0, nrow(hollywood)), Amount_inches = rep(0, nrow(hollywood)), Accumulated_inches = rep(0, nrow(hollywood)))
 
 for(i in 2:ncol(hollywood)){
-  formatted[[i-1]] <- hollywood[[i]] %>% str_remove_all(., "\\s") %>% as.numeric()
+  formatted[[i-1]] <- hollywood[[i]] %>% str_replace_all(., "\\s","") %>% as.numeric()
 }
 
 hollywood <- cbind(Date_Time = hollywood[,1], formatted)
@@ -217,7 +217,7 @@ incidental_LA_total <- (total_rainfall_LA/18.73) * incidental_avg_LA
 incidental_SFV_total <- (total_rainfall_SFV/18.73) * incidental_avg_LA
 
 incidental_LA_today <- (today_rainfall_LA/18.73) * incidental_avg_LA
-incidental_SFV_today <- (today_rainfall_SFv/18.73) * incidental_avg_LA
+incidental_SFV_today <- (today_rainfall_SFV/18.73) * incidental_avg_LA
 
 # Total capture via this method
 incidental_capture = sum(incidental_LA_total, incidental_SFV_total)
@@ -254,7 +254,7 @@ library(lubridate)
 Sys.setenv(TZ="America/Los_Angeles")
 now()
 ## NOT WORKING - AIDA PLS HELP! :)
-total_capture$timestamp <- as.POSIXct(total_capture$timestamp)
+#total_capture$timestamp <- as.POSIXct(total_capture$timestamp)
 
 new_row <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, incidental_capture,	GI_capture)
 new_row$combined <- sum(spreading_capture, barrels_and_cisterns_capture, incidental_capture, GI_capture)
@@ -267,13 +267,13 @@ names(total_capture) <- c("timestamp", "spreading_capture", "barrels_and_cistern
 new_dataset <- rbind(total_capture, new_row)
 
 # Write table to Socrata using RSocrata package
-write.socrata(dataframe = new_dataset,
-              dataset_json_endpoint = "https://data.lacity.org/resource/bnhe-q7a5.json",
-              update_mode = "REPLACE",
-              email = "chelsea.ursaner@lacity.org",
-              password = "California1$")
+#write.socrata(dataframe = new_dataset,
+              #dataset_json_endpoint = "https://data.lacity.org/resource/bnhe-q7a5.json",
+              #update_mode = "REPLACE",
+              #email = "chelsea.ursaner@lacity.org",
+              #password = "California1$")
 
-write.csv(new_dataset, "water_capture_by_method.csv", row.names=F)
+#write.csv(new_dataset, "water_capture_by_method.csv", row.names=F)
 ```
 
 
