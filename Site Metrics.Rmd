@@ -108,13 +108,11 @@ hollywood <- cbind(Date_Time = hollywood[,1], formatted)
 # Create new precipitation datasets - averages of certain rain guages per region to be more accurate
 # For LA metro, use 2-gauge average (USC, LA Ducommun).
 # used for rain barrels, green infrastructure (GI), and incidental capture
-# LA_precip <- mean(USC[1,4], ducommun[1,4])     ---    not working because of whitespace in the dataset 
-# to continue testing the script, temporarily set to ducommun
-LA_precip = ducommun 
+LA_precip <- mean(USC[1,4], ducommun[1,4]) 
 
 # for San Fernando Valley, use average of Schoolhouse DB (gauge 450) and Hollywood resevoir (gauge 312)
-# to continue testing the script, temporarily set to hollywood
-SFV_precip = hollywood 
+# for future scope use multi-guage average - check w Anthony/stormwater dashboard doc. This methodology also gets more granular - seconds as opposed to just hours and minutes
+SFV_precip = mean(schoolhouse[1,4], hollywood[1,4]) 
 ```
 
 ## Spreading Grounds
@@ -151,9 +149,6 @@ barrels <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/
 #prep data
 barrels <- na.omit(barrels)
 
-# Read precipitation dataset for LA metro
-glimpse(LA_precip)
-
 # Perform calculations to get total capture this season
 # Precipitation in LA metro * Unit Capture (AFY) for rain barrels and small, medium, large cisterns 
 rb_unit_capture = 0.0019
@@ -161,45 +156,28 @@ sc_unit_capture = 0.0076
 mc_unit_capture = 0.0094
 lc_unit_capture = 0.0108
 
-# Not working because of whitespace
-#total_rainfall_LA <- last(LA_precip$Accumulated_inches)
-#today_rainfall_LA <- last(LA_precip$Amount_inches)
-
-# manually inputting numbers
-head(LA_precip)
-total_rainfall_LA = 2.75 #inches
-today_rainfall_LA = 0 
-
-head(SFV_precip)
-total_rainfall_SFV = 3.73 #inches
-today_rainfall_SFV = 0 
-                         
 # Total residential rain barrel capture, todays capture
-rb_capture_total <-  total_rainfall_LA * rb_unit_capture * last(barrels$Rain.Barrels)
+rb_capture_total <-  LA_precip * rb_unit_capture * last(barrels$Rain.Barrels)
 rb_capture_today <-  today_rainfall_LA * rb_unit_capture * last(barrels$Rain.Barrels)
 
 # Total small cistern capture, today's small cistern capture
-sc_capture_total = total_rainfall_LA * sc_unit_capture * last(barrels$Residential..Small..Cisterns)
-mc_capture_total = total_rainfall_LA * mc_unit_capture * last(barrels$Medium.Cisterns)
-lc_capture_total = total_rainfall_LA * lc_unit_capture * last(barrels$Large.Cisterns )
-
-sc_capture_today = today_rainfall_LA * sc_unit_capture
-mc_capture_today = today_rainfall_LA * mc_unit_capture
-lc_capture_today = today_rainfall_LA * lc_unit_capture
+sc_capture_total = LA_precip * sc_unit_capture * last(barrels$Residential..Small..Cisterns)
+mc_capture_total = LA_precip * mc_unit_capture * last(barrels$Medium.Cisterns)
+lc_capture_total = LA_precip * lc_unit_capture * last(barrels$Large.Cisterns )
 
 # Total capture via this method
 barrels_and_cisterns_capture = sum(rb_capture_total, sc_capture_total, mc_capture_total, lc_capture_total)
-barrels_and_cisterns_today = sum(rb_capture_today, sc_capture_today, mc_capture_today, lc_capture_today)
 
 #calculate number of projects
 barrels_and_cisterns_projects <- sum(barrels$Rain.Barrels, barrels$Residential..Small..Cisterns, barrels$Medium.Cisterns, barrels$Large.Cisterns)
 ```
 
 Rain barrels and cisterns capture this season = `r barrels_and_cisterns_capture` acre feet.
-Rain barrels and cisterns capture today = `r barrels_and_cisterns_today` acre feet.
 Rain barrels and cisterns number of projects = `r barrels_and_cisterns_projects`
 
 ## Incidental Capture
+
+Incidental capture is the amount of water that runs off, percolates into the ground, filters through the soil, and enters the water supply. 
 
 ```{r}
 # No capacity dataset - use a static numbers of average incidental capture per season
@@ -209,23 +187,18 @@ incidental_avg_SFV <- 29900
 incidental_avg_LA <- 5100
 
 # Calculate incidental capture this season and today
-# Percentage of average capture this season represents - Annual rainfall per season assume 18.73 inches 
-incidental_LA_total <- (total_rainfall_LA/18.73) * incidental_avg_LA
+# Percentage of average capture this season represents - Annual rainfall per season assume 15.02 inches 
+incidental_LA_total <- (LA_precip/15.02) * incidental_avg_LA
 
 # For SFV, use average of Schoolhouse DB (gauge 450) and Hollywood resevoir (gauge 312)
-# For now using LA rainfall
-incidental_SFV_total <- (total_rainfall_SFV/18.73) * incidental_avg_LA
-
-incidental_LA_today <- (today_rainfall_LA/18.73) * incidental_avg_LA
-incidental_SFV_today <- (today_rainfall_SFV/18.73) * incidental_avg_LA
+# Percentage of average capture this season represents - Annual rainfall per season assume 18.73 inches 
+incidental_SFV_total <- (SFV_precip/18.73) * incidental_avg_LA
 
 # Total capture via this method
 incidental_capture = sum(incidental_LA_total, incidental_SFV_total)
-incidental_today = sum(incidental_LA_today, incidental_SFV_today)
 ```
 
 Incidental Capture this season = `r incidental_capture` acre feet.
-Incidental Capture today = `r incidental_today` acre feet.
 
 ## Green Infrastructure
 
@@ -236,12 +209,10 @@ GI <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Green
 # Split by project type - need updated dataset
 
 # Total capture via this method
-GI_capture = sum(GI$Drainage.Area...Acres.) * total_rainfall_LA
-GI_today = sum(GI$Drainage.Area...Acres.) * today_rainfall_LA
+GI_capture = sum(GI$Drainage.Area...Acres.) * LA_precip
 ```
 
 Green Infrastructure Capture this season = `r GI_capture` acre feet.
-Green Infrastructure Capture today = `r GI_today` acre feet.
 
 ## Total Capture - All Methods
 ```{r}
@@ -258,7 +229,7 @@ now()
 
 new_row <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, incidental_capture,	GI_capture)
 new_row$combined <- sum(spreading_capture, barrels_and_cisterns_capture, incidental_capture, GI_capture)
-new_row$rain_in <- total_rainfall_LA
+new_row$rain_in <- LA_precip
 
 names(new_row) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capture", "incidental_capture",	"gi_capture", "total_capture", "rain_in")
 
