@@ -238,13 +238,14 @@ names(total_capture) <- c("timestamp", "spreading_capture", "barrels_and_cistern
 new_dataset <- rbind(total_capture, new_row)
 
 # Write table to Socrata using RSocrata package
-#write.socrata(dataframe = new_dataset,
-              #dataset_json_endpoint = "https://data.lacity.org/resource/bnhe-q7a5.json",
-              #update_mode = "REPLACE",
-              #email = "chelsea.ursaner@lacity.org",
-              #password = "California1$")
+write.socrata(dataframe = new_dataset,
+              dataset_json_endpoint = "https://data.lacity.org/resource/xe35-4wsy.json",
+              update_mode = "REPLACE",
+              email = "chelsea.ursaner@lacity.org",
+              password = "California1$")
 
-#write.csv(new_dataset, "water_capture_by_method.csv", row.names=F)
+# If we run into issues and need to manually update
+# write.csv(new_dataset, "water_capture_by_method.csv", row.names=F)
 ```
 
 
