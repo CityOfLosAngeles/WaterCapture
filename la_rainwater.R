@@ -1,24 +1,197 @@
-
+# props to Aida from UCLA stats for writing this web scraping script!
 # Load necessary packages -------------------------------------------------
 
 library(httr)
 library(rvest)
 library(dplyr)
+library(stringr)
+library(RSocrata)
 
+# Read html pages, scrape raw data -----------------------------------------
+# LA DUCOMMUN RAIN GAUGE - recorded twice daily
 
-# Read html page, scrape raw data -----------------------------------------
+ducommun_scrape <- read_html("http://dpw.lacounty.gov/wrd/precip/alert_rain/season_raindata.cfm?id=377")
 
-rain <- read_html("http://dpw.lacounty.gov/wrd/precip/alert_rain/season_raindata.cfm?id=377")
-
-rain_table <- rain %>% html_nodes("td, th") %>% html_text() %>% as.data.frame()
-rain_table <- rain_table[2:nrow(rain_table), 1] %>% as.data.frame()
-
+ducommun_table <- ducommun_scrape %>% html_nodes("td, th") %>% html_text() %>% as.data.frame()
+ducommun_table <- ducommun_table[2:nrow(ducommun_table), 1] %>% as.data.frame()
 
 # Format raw data into table ----------------------------------------------
+ducommun <- split(ducommun_table, 1:4) %>% as.data.frame()
+names(ducommun) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inches")
+rownames(ducommun) <- 1:nrow(ducommun)
+ducommun <- ducommun[2:nrow(ducommun), ]
 
-rain_data <- split(rain_table, 1:4) %>% as.data.frame()
-names(rain_data) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inches")
-rownames(rain_data) <- 1:nrow(rain_data)
-rain_data <- rain_data[2:nrow(rain_data), ]
+formatted <- data.frame(Raw_Count = rep(0, nrow(ducommun)), Amount_inches = rep(0, nrow(ducommun)), Accumulated_inches = rep(0, nrow(ducommun)))
 
-View(rain_data)
+for(i in 2:ncol(ducommun)){
+  formatted[[i-1]] <- ducommun[[i]] %>% str_replace_all(., "\\s","") %>% as.numeric()
+}
+
+ducommun <- cbind(Date_Time = ducommun[,1], formatted)
+
+# USC RAIN GAUGE - recorded hourly
+
+USC_scrape <- read_html("http://dpw.lacounty.gov/wrd/precip/alert_rain/season_raindata.cfm?id=375")
+
+USC_table <- USC_scrape %>% html_nodes("td, th") %>% html_text() %>% as.data.frame()
+USC_table <- USC_table[2:nrow(USC_table), 1] %>% as.data.frame()
+
+# Format raw data into table ----------------------------------------------
+USC <- split(USC_table, 1:4) %>% as.data.frame()
+names(USC) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inches")
+rownames(USC) <- 1:nrow(USC)
+USC <- USC[2:nrow(USC), ]
+
+formatted <- data.frame(Raw_Count = rep(0, nrow(USC)), Amount_inches = rep(0, nrow(USC)), Accumulated_inches = rep(0, nrow(USC)))
+
+for(i in 2:ncol(USC)){
+  formatted[[i-1]] <- USC[[i]] %>% str_replace_all(., "\\s","") %>% as.numeric()
+}
+
+USC <- cbind(Date_Time = USC[,1], formatted)
+
+# SCHOOLHOUSE RAIN GAUGE - recorded twice daily
+
+schoolhouse_scrape <- read_html("http://dpw.lacounty.gov/wrd/precip/alert_rain/season_raindata.cfm?id=450")
+
+schoolhouse_table <- schoolhouse_scrape %>% html_nodes("td, th") %>% html_text() %>% as.data.frame()
+schoolhouse_table <- schoolhouse_table[2:nrow(schoolhouse_table), 1] %>% as.data.frame()
+
+# Format raw data into table ----------------------------------------------
+schoolhouse <- split(schoolhouse_table, 1:4) %>% as.data.frame()
+names(schoolhouse) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inches")
+rownames(schoolhouse) <- 1:nrow(schoolhouse)
+schoolhouse <- schoolhouse[2:nrow(schoolhouse), ]
+
+formatted <- data.frame(Raw_Count = rep(0, nrow(schoolhouse)), Amount_inches = rep(0, nrow(schoolhouse)), Accumulated_inches = rep(0, nrow(schoolhouse)))
+
+for(i in 2:ncol(schoolhouse)){
+  formatted[[i-1]] <- schoolhouse[[i]] %>% str_replace_all(., "\\s","") %>% as.numeric()
+}
+
+schoolhouse <- cbind(Date_Time = schoolhouse[,1], formatted)
+
+# HOLLYWOOD RESEVOIR RAIN GAUGE - recorded hourly
+
+hollywood_scrape <- read_html("http://dpw.lacounty.gov/wrd/precip/alert_rain/season_raindata.cfm?id=312")
+
+hollywood_table <- hollywood_scrape %>% html_nodes("td, th") %>% html_text() %>% as.data.frame()
+hollywood_table <- hollywood_table[2:nrow(hollywood_table), 1] %>% as.data.frame()
+
+# Format raw data into table ----------------------------------------------
+hollywood <- split(hollywood_table, 1:4) %>% as.data.frame()
+names(hollywood) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inches")
+rownames(hollywood) <- 1:nrow(hollywood)
+hollywood <- hollywood[2:nrow(hollywood), ]
+
+formatted <- data.frame(Raw_Count = rep(0, nrow(hollywood)), Amount_inches = rep(0, nrow(hollywood)), Accumulated_inches = rep(0, nrow(hollywood)))
+
+for(i in 2:ncol(hollywood)){
+  formatted[[i-1]] <- hollywood[[i]] %>% str_replace_all(., "\\s","") %>% as.numeric()
+}
+
+hollywood <- cbind(Date_Time = hollywood[,1], formatted)
+
+# Create new precipitation datasets - averages of certain rain guages per region to be more accurate
+# For LA metro, use 2-gauge average (USC, LA Ducommun).
+# used for rain barrels, green infrastructure (GI), and incidental capture
+LA_precip <- mean(USC[1,4], ducommun[1,4]) 
+
+# for San Fernando Valley, use average of Schoolhouse DB (gauge 450) and Hollywood resevoir (gauge 312)
+# for future scope use multi-guage average - check w Anthony/stormwater dashboard doc. This methodology also gets more granular - seconds as opposed to just hours and minutes
+SFV_precip = mean(schoolhouse[1,4], hollywood[1,4]) 
+
+## SPREADING GROUNDS
+#Read spreading ground capture dataset
+spreading <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Spreading-Grounds-Centralized-Monthly-Capture/cy8h-q3bu")
+#prep data
+spreading <- na.omit(spreading)
+
+#calculate spreading ground capture this season
+this_season <- spreading %>% select(-Month) %>% group_by(Rain.Season) %>% summarize_all(sum) %>%
+  filter(Rain.Season == "2017-2018") %>% select(-Rain.Season)
+#sum all spreading grounds to get cumulative 
+spreading_capture <- rowSums(this_season)
+
+## RAIN BARRELS AND CISTERNS
+# Read rain barrels & cisterns capacity dataset
+barrels <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Rain-Barrels-And-Cisterns-Issued-Through-LAWDP-Reb/a5vt-xsyi")
+#prep data
+barrels <- na.omit(barrels)
+
+# Perform calculations to get total capture this season
+# Precipitation in LA metro * Unit Capture (AFY) for rain barrels and small, medium, large cisterns 
+rb_unit_capture = 0.0019
+sc_unit_capture = 0.0076
+mc_unit_capture = 0.0094
+lc_unit_capture = 0.0108
+
+# Total residential rain barrel capture, todays capture
+rb_capture_total <-  LA_precip * rb_unit_capture * last(barrels$Rain.Barrels)
+rb_capture_today <-  today_rainfall_LA * rb_unit_capture * last(barrels$Rain.Barrels)
+
+# Total small cistern capture, today's small cistern capture
+sc_capture_total = LA_precip * sc_unit_capture * last(barrels$Residential..Small..Cisterns)
+mc_capture_total = LA_precip * mc_unit_capture * last(barrels$Medium.Cisterns)
+lc_capture_total = LA_precip * lc_unit_capture * last(barrels$Large.Cisterns )
+
+# Total capture via this method
+barrels_and_cisterns_capture = sum(rb_capture_total, sc_capture_total, mc_capture_total, lc_capture_total)
+
+#calculate number of projects
+barrels_and_cisterns_projects <- sum(barrels$Rain.Barrels, barrels$Residential..Small..Cisterns, barrels$Medium.Cisterns, barrels$Large.Cisterns)
+
+## INCIDENTAL CAPTURE
+# Average year capture for San Fernando Valley is 29,900 Acre Ft according to the Stormwater Capture Master Plan
+incidental_avg_SFV <- 29900
+# Average year capture for LA Metro area is 5,100 Acre Ft 
+incidental_avg_LA <- 5100
+
+# Calculate incidental capture this season and today
+# Percentage of average capture this season represents - Annual rainfall per season assume 15.02 inches 
+incidental_LA_total <- (LA_precip/15.02) * incidental_avg_LA
+
+# For SFV, use average of Schoolhouse DB (gauge 450) and Hollywood resevoir (gauge 312)
+# Percentage of average capture this season represents - Annual rainfall per season assume 18.73 inches 
+incidental_SFV_total <- (SFV_precip/18.73) * incidental_avg_LA
+
+# Total capture via this method
+incidental_capture = sum(incidental_LA_total, incidental_SFV_total)
+
+## GREEN INFRASTRUCTURE
+# Read GI projects dataset
+GI <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Green-Infrastructure-Water-Capture-Capacity/pdbw-x3k8")
+
+# Split by project type - need updated dataset
+
+# Total capture via this method
+GI_capture = sum(GI$Drainage.Area...Acres.) * LA_precip
+
+## FINAL DATASET
+# Read table of total capture 
+total_capture <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Water-Capture-by-Method/xe35-4wsy")
+
+# Create data frame to replace dataset - can switch to append later if we want
+# Record today's date time stamp and the capture per method
+library(lubridate)
+Sys.setenv(TZ="America/Los_Angeles")
+now()
+## NOT WORKING - AIDA PLS HELP! :)
+#total_capture$timestamp <- as.POSIXct(total_capture$timestamp)
+
+new_row <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, incidental_capture,	GI_capture)
+new_row$combined <- sum(spreading_capture, barrels_and_cisterns_capture, incidental_capture, GI_capture)
+new_row$rain_in <- LA_precip
+
+names(new_row) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capture", "incidental_capture",	"gi_capture", "total_capture", "rain_in")
+
+names(total_capture) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capture", "incidental_capture",	"gi_capture", "total_capture", "rain_in")
+
+new_dataset <- rbind(total_capture, new_row)
+
+# Write table to Socrata using RSocrata package
+write.socrata(dataframe = new_dataset,
+              dataset_json_endpoint = "https://data.lacity.org/resource/xe35-4wsy.json",
+              update_mode = "REPLACE",
+              email = "chelsea.ursaner@lacity.org",
+              password = "California1$")
