@@ -1,6 +1,6 @@
 # props to Aida from UCLA stats for writing this web scraping script!
 # Load necessary packages -------------------------------------------------
-
+.libPaths(c("/Users/chelz2998/Library/R/3.2/library", .libPaths()))
 library(httr)
 library(rvest)
 library(dplyr)
