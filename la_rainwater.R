@@ -1,6 +1,5 @@
 # props to Aida from UCLA stats for writing this web scraping script!
 # Load necessary packages -------------------------------------------------
-install.packages("stringr")
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(httr, rvest, dplyr, stringr, RSocrata, lubridate)
 Sys.setenv(TZ="America/Los_Angeles")
