@@ -169,8 +169,6 @@ total_capture <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable
 
 # Create data frame to replace dataset - can switch to append later if we want
 # Record today's date time stamp and the capture per method
-now()
-
 new_row <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, incidental_capture,	GI_capture)
 new_row$combined <- sum(spreading_capture, barrels_and_cisterns_capture, incidental_capture, GI_capture)
 new_row$rain_in <- LA_precip
