@@ -1,11 +1,8 @@
 # props to Aida from UCLA stats for writing this web scraping script!
 # Load necessary packages -------------------------------------------------
-.libPaths(c("/Users/chelz2998/Library/R/3.2/library", .libPaths()))
-library(httr)
-library(rvest)
-library(dplyr)
-library(stringr)
-library(RSocrata)
+install.packages("stringr")
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(httr, rvest, dplyr, stringr, RSocrata)
 
 # Read html pages, scrape raw data -----------------------------------------
 # LA DUCOMMUN RAIN GAUGE - recorded twice daily
@@ -95,11 +92,11 @@ hollywood <- cbind(Date_Time = hollywood[,1], formatted)
 # Create new precipitation datasets - averages of certain rain guages per region to be more accurate
 # For LA metro, use 2-gauge average (USC, LA Ducommun).
 # used for rain barrels, green infrastructure (GI), and incidental capture
-LA_precip <- mean(USC[1,4], ducommun[1,4]) 
+LA_precip <- mean(c(USC[1,4], ducommun[1,4]))
 
 # for San Fernando Valley, use average of Schoolhouse DB (gauge 450) and Hollywood resevoir (gauge 312)
 # for future scope use multi-guage average - check w Anthony/stormwater dashboard doc. This methodology also gets more granular - seconds as opposed to just hours and minutes
-SFV_precip = mean(schoolhouse[1,4], hollywood[1,4]) 
+SFV_precip = mean(c(schoolhouse[1,4], hollywood[1,4]))
 
 ## SPREADING GROUNDS
 #Read spreading ground capture dataset
@@ -190,8 +187,11 @@ names(total_capture) <- c("timestamp", "spreading_capture", "barrels_and_cistern
 new_dataset <- rbind(total_capture, new_row)
 
 # Write table to Socrata using RSocrata package
+# Set password
+user_password <- readLines("password.txt")
+
 write.socrata(dataframe = new_dataset,
               dataset_json_endpoint = "https://data.lacity.org/resource/xe35-4wsy.json",
               update_mode = "REPLACE",
               email = "chelsea.ursaner@lacity.org",
-              password = "California1$")
+              password = user_password)
