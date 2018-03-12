@@ -2,7 +2,8 @@
 # Load necessary packages -------------------------------------------------
 install.packages("stringr")
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(httr, rvest, dplyr, stringr, RSocrata)
+pacman::p_load(httr, rvest, dplyr, stringr, RSocrata, lubridate)
+Sys.setenv(TZ="America/Los_Angeles")
 
 # Read html pages, scrape raw data -----------------------------------------
 # LA DUCOMMUN RAIN GAUGE - recorded twice daily
@@ -125,7 +126,6 @@ lc_unit_capture = 0.0108
 
 # Total residential rain barrel capture, todays capture
 rb_capture_total <-  LA_precip * rb_unit_capture * last(barrels$Rain.Barrels)
-rb_capture_today <-  today_rainfall_LA * rb_unit_capture * last(barrels$Rain.Barrels)
 
 # Total small cistern capture, today's small cistern capture
 sc_capture_total = LA_precip * sc_unit_capture * last(barrels$Residential..Small..Cisterns)
@@ -170,11 +170,7 @@ total_capture <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable
 
 # Create data frame to replace dataset - can switch to append later if we want
 # Record today's date time stamp and the capture per method
-library(lubridate)
-Sys.setenv(TZ="America/Los_Angeles")
 now()
-## NOT WORKING - AIDA PLS HELP! :)
-#total_capture$timestamp <- as.POSIXct(total_capture$timestamp)
 
 new_row <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, incidental_capture,	GI_capture)
 new_row$combined <- sum(spreading_capture, barrels_and_cisterns_capture, incidental_capture, GI_capture)
