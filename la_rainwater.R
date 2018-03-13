@@ -89,14 +89,35 @@ for(i in 2:ncol(hollywood)){
 
 hollywood <- cbind(Date_Time = hollywood[,1], formatted)
 
+# Tujunga S.G. RAIN GAUGE - 
+
+tsg_scrape <- read_html("http://dpw.lacounty.gov/wrd/precip/alert_rain/season_raindata.cfm?id=462")
+
+tsg_table <- tsg_scrape %>% html_nodes("td, th") %>% html_text() %>% as.data.frame()
+tsg_table <- tsg_table[2:nrow(tsg_table), 1] %>% as.data.frame()
+
+# Format raw data into table ----------------------------------------------
+tsg <- split(tsg_table, 1:4) %>% as.data.frame()
+names(tsg) <- c("Date_Time", "Raw_Count", "Amount_inches", "Accumulated_inches")
+rownames(tsg) <- 1:nrow(tsg)
+tsg <- tsg[2:nrow(tsg), ]
+
+formatted <- data.frame(Raw_Count = rep(0, nrow(tsg)), Amount_inches = rep(0, nrow(tsg)), Accumulated_inches = rep(0, nrow(tsg)))
+
+for(i in 2:ncol(tsg)){
+  formatted[[i-1]] <- tsg[[i]] %>% str_replace_all(., "\\s","") %>% as.numeric()
+}
+
+tsg <- cbind(Date_Time = tsg[,1], formatted)
+
 # Create new precipitation datasets - averages of certain rain guages per region to be more accurate
 # For LA metro, use 2-gauge average (USC, LA Ducommun).
 # used for rain barrels, green infrastructure (GI), and incidental capture
 LA_precip <- mean(c(USC[1,4], ducommun[1,4]))
 
-# for San Fernando Valley, use average of Schoolhouse DB (gauge 450) and Hollywood resevoir (gauge 312)
-# for future scope use multi-guage average - check w Anthony/stormwater dashboard doc. This methodology also gets more granular - seconds as opposed to just hours and minutes
-SFV_precip = mean(c(schoolhouse[1,4], hollywood[1,4]))
+# for San Fernando Valley, use average of Schoolhouse DB (gauge 450), Hollywood resevoir (gauge 312), and TSG (gauge 462)
+# can expand multi-guage average in the future - check w Anthony/stormwater dashboard doc for methodology that goes to precision level of seconds 
+SFV_precip = mean(c(schoolhouse[1,4], hollywood[1,4], tsg[1,4]))
 
 ## SPREADING GROUNDS
 #Read spreading ground capture dataset
