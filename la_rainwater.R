@@ -135,7 +135,7 @@ spreading_capture <- rowSums(this_season)
 # Read rain barrels & cisterns capacity dataset
 barrels <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Rain-Barrels-And-Cisterns-Issued-Through-LAWDP-Reb/a5vt-xsyi")
 #prep data
-barrels <- na.omit(barrels)
+barrels <- na.omit(barrels) %>% filter(Rain.Season == "2017/2018")
 
 # Perform calculations to get total capture this season
 # Precipitation in LA metro * Unit Capture (AFY) for rain barrels and small, medium, large cisterns 
@@ -145,12 +145,13 @@ mc_unit_capture = 0.0094
 lc_unit_capture = 0.0108
 
 # Total residential rain barrel capture, todays capture
-rb_capture_total <-  LA_precip * rb_unit_capture * last(barrels$Rain.Barrels)
+rb_capture_total <-  LA_precip * rb_unit_capture * sum(barrels$Rain.Barrels)
+rb_capture_today <-  today_rainfall_LA * rb_unit_capture * sum(barrels$Rain.Barrels)
 
 # Total small cistern capture, today's small cistern capture
-sc_capture_total = LA_precip * sc_unit_capture * last(barrels$Residential..Small..Cisterns)
-mc_capture_total = LA_precip * mc_unit_capture * last(barrels$Medium.Cisterns)
-lc_capture_total = LA_precip * lc_unit_capture * last(barrels$Large.Cisterns )
+sc_capture_total = LA_precip * sc_unit_capture * sum(barrels$Residential..Small..Cisterns)
+mc_capture_total = LA_precip * mc_unit_capture * sum(barrels$Medium.Cisterns)
+lc_capture_total = LA_precip * lc_unit_capture * sum(barrels$Large.Cisterns )
 
 # Total capture via this method
 barrels_and_cisterns_capture = sum(rb_capture_total, sc_capture_total, mc_capture_total, lc_capture_total)
