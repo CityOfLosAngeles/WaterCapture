@@ -170,7 +170,7 @@ incidental_avg_LA <- 5100
 incidental_LA_total <- (LA_precip/15.02) * incidental_avg_LA
 
 # Percentage of average capture this season represents - Annual rainfall per season assume 18.73 inches 
-incidental_SFV_total <- (SFV_precip/18.73) * incidental_avg_LA
+incidental_SFV_total <- (SFV_precip/18.73) * incidental_avg_SFV
 
 # Total capture via this method
 incidental_capture = sum(incidental_LA_total, incidental_SFV_total)
