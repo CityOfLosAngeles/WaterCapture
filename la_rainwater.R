@@ -135,7 +135,7 @@ spreading_capture <- rowSums(this_season)
 # Read rain barrels & cisterns capacity dataset
 barrels <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Rain-Barrels-And-Cisterns-Issued-Through-LAWDP-Reb/a5vt-xsyi")
 #prep data
-barrels <- na.omit(barrels) %>% filter(Rain.Season == "2017/2018")
+barrels <- na.omit(barrels)
 
 # Perform calculations to get total capture this season
 # Precipitation in LA metro * Unit Capture (AFY) for rain barrels and small, medium, large cisterns 
@@ -144,17 +144,17 @@ sc_unit_capture = 0.0076
 mc_unit_capture = 0.0094
 lc_unit_capture = 0.0108
 
-# Total residential rain barrel capture, todays capture
+# Total residential rain barrel capture
 rb_capture_total <-  LA_precip * rb_unit_capture * sum(barrels$Rain.Barrels)
-rb_capture_today <-  today_rainfall_LA * rb_unit_capture * sum(barrels$Rain.Barrels)
 
 # Total small cistern capture, today's small cistern capture
 sc_capture_total = LA_precip * sc_unit_capture * sum(barrels$Residential..Small..Cisterns)
 mc_capture_total = LA_precip * mc_unit_capture * sum(barrels$Medium.Cisterns)
-lc_capture_total = LA_precip * lc_unit_capture * sum(barrels$Large.Cisterns )
+lc_capture_total = LA_precip * lc_unit_capture * sum(barrels$Large.Cisterns)
 
 # Total capture via this method
-barrels_and_cisterns_capture = sum(rb_capture_total, sc_capture_total, mc_capture_total, lc_capture_total)
+# Divide by yearly precipitation in LA
+barrels_and_cisterns_capture = (sum(rb_capture_total, sc_capture_total, mc_capture_total, lc_capture_total)/15.02)
 
 #calculate number of projects
 barrels_and_cisterns_projects <- sum(barrels$Rain.Barrels, barrels$Residential..Small..Cisterns, barrels$Medium.Cisterns, barrels$Large.Cisterns)
@@ -165,7 +165,7 @@ incidental_avg_SFV <- 29900
 # Average year capture for LA Metro area is 5,100 Acre Ft 
 incidental_avg_LA <- 5100
 
-# Calculate incidental capture this season and today
+# Calculate incidental capture this season
 # Percentage of average capture this season represents - Annual rainfall per season assume 15.02 inches 
 incidental_LA_total <- (LA_precip/15.02) * incidental_avg_LA
 
