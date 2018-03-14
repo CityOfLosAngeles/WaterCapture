@@ -125,9 +125,18 @@ spreading <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-Cit
 #prep data
 spreading <- na.omit(spreading)
 
+# calculate the current season. new season starts on October 1 each year.
+currentYear = year(today())
+currentMonth = month(today())
+if (currentMonth < 10) {
+	currentSeason = paste0(currentYear - 1, '-', currentYear)
+} else {
+	currentSeason = paste0(currentYear, '-', currentYear + 1)
+}
+
 #calculate spreading ground capture this season
 this_season <- spreading %>% select(-Month) %>% group_by(Rain.Season) %>% summarize_all(sum) %>%
-  filter(Rain.Season == "2017-2018") %>% select(-Rain.Season)
+  filter(Rain.Season == currentSeason) %>% select(-Rain.Season)
 #sum all spreading grounds to get cumulative 
 spreading_capture <- rowSums(this_season)
 
