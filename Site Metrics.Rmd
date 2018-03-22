@@ -136,21 +136,24 @@ SFV_precip = mean(c(schoolhouse[1,4], hollywood[1,4], tsg[1,4]))
 
 ## Spreading Grounds
 
-Total capture this season
-
 ```{r}
-# load the RSocrata package
-library(RSocrata)
 #Read spreading ground capture dataset
 spreading <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Spreading-Grounds-Centralized-Monthly-Capture/cy8h-q3bu")
 #prep data
 spreading <- na.omit(spreading)
 
-#load dplyr if not already
-library(dplyr)
+# calculate the current season. new season starts on October 1 each year.
+currentYear = year(today())
+currentMonth = month(today())
+if (currentMonth < 10) {
+	currentSeason = paste0(currentYear - 1, '-', currentYear)
+} else {
+	currentSeason = paste0(currentYear, '-', currentYear + 1)
+}
+
 #calculate spreading ground capture this season
 this_season <- spreading %>% select(-Month) %>% group_by(Rain.Season) %>% summarize_all(sum) %>%
-  filter(Rain.Season == "2017-2018") %>% select(-Rain.Season)
+  filter(Rain.Season == currentSeason) %>% select(-Rain.Season)
 #sum all spreading grounds to get cumulative 
 spreading_capture <- rowSums(this_season)
 ```
@@ -160,13 +163,10 @@ Spreading Ground capture this season = `r spreading_capture` acre feet.
 ## Rain Barrels and Cisterns
 
 ```{r}
-# Read capture capacity dataset
-# load the RSocrata package if not already
-library(RSocrata)
 # Read rain barrels & cisterns capacity dataset
 barrels <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Rain-Barrels-And-Cisterns-Issued-Through-LAWDP-Reb/a5vt-xsyi")
 #prep data
-barrels <- na.omit(barrels) %>% filter(Rain.Season == "2017/2018")
+barrels <- na.omit(barrels)
 
 # Perform calculations to get total capture this season
 # Precipitation in LA metro * Unit Capture (AFY) for rain barrels and small, medium, large cisterns 
@@ -175,17 +175,17 @@ sc_unit_capture = 0.0076
 mc_unit_capture = 0.0094
 lc_unit_capture = 0.0108
 
-# Total residential rain barrel capture, todays capture
+# Total residential rain barrel capture
 rb_capture_total <-  LA_precip * rb_unit_capture * sum(barrels$Rain.Barrels)
-rb_capture_today <-  today_rainfall_LA * rb_unit_capture * sum(barrels$Rain.Barrels)
 
 # Total small cistern capture, today's small cistern capture
 sc_capture_total = LA_precip * sc_unit_capture * sum(barrels$Residential..Small..Cisterns)
 mc_capture_total = LA_precip * mc_unit_capture * sum(barrels$Medium.Cisterns)
-lc_capture_total = LA_precip * lc_unit_capture * sum(barrels$Large.Cisterns )
+lc_capture_total = LA_precip * lc_unit_capture * sum(barrels$Large.Cisterns)
 
 # Total capture via this method
-barrels_and_cisterns_capture = sum(rb_capture_total, sc_capture_total, mc_capture_total, lc_capture_total)
+# Divide by yearly precipitation in LA
+barrels_and_cisterns_capture = (sum(rb_capture_total, sc_capture_total, mc_capture_total, lc_capture_total)/15.02)
 
 #calculate number of projects
 barrels_and_cisterns_projects <- sum(barrels$Rain.Barrels, barrels$Residential..Small..Cisterns, barrels$Medium.Cisterns, barrels$Large.Cisterns)
@@ -199,17 +199,15 @@ Rain barrels and cisterns number of projects = `r barrels_and_cisterns_projects`
 Incidental capture is the amount of water that runs off, percolates into the ground, filters through the soil, and enters the water supply. 
 
 ```{r}
-# No capacity dataset - use a static numbers of average incidental capture per season
 # Average year capture for San Fernando Valley is 29,900 Acre Ft according to the Stormwater Capture Master Plan
 incidental_avg_SFV <- 29900
 # Average year capture for LA Metro area is 5,100 Acre Ft 
 incidental_avg_LA <- 5100
 
-# Calculate incidental capture this season and today
+# Calculate incidental capture this season
 # Percentage of average capture this season represents - Annual rainfall per season assume 15.02 inches 
 incidental_LA_total <- (LA_precip/15.02) * incidental_avg_LA
 
-# For SFV, use average of Schoolhouse DB (gauge 450) and Hollywood resevoir (gauge 312)
 # Percentage of average capture this season represents - Annual rainfall per season assume 18.73 inches 
 incidental_SFV_total <- (SFV_precip/18.73) * incidental_avg_SFV
 
@@ -240,12 +238,6 @@ total_capture <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable
 
 # Create data frame to replace dataset - can switch to append later if we want
 # Record today's date time stamp and the capture per method
-library(lubridate)
-Sys.setenv(TZ="America/Los_Angeles")
-now()
-## NOT WORKING - AIDA PLS HELP! :)
-#total_capture$timestamp <- as.POSIXct(total_capture$timestamp)
-
 new_row <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, incidental_capture,	GI_capture)
 new_row$combined <- sum(spreading_capture, barrels_and_cisterns_capture, incidental_capture, GI_capture)
 new_row$rain_in <- LA_precip
@@ -257,11 +249,14 @@ names(total_capture) <- c("timestamp", "spreading_capture", "barrels_and_cistern
 new_dataset <- rbind(total_capture, new_row)
 
 # Write table to Socrata using RSocrata package
+# Set password
+user_password <- readLines("password.txt")
+
 write.socrata(dataframe = new_dataset,
               dataset_json_endpoint = "https://data.lacity.org/resource/xe35-4wsy.json",
               update_mode = "REPLACE",
               email = "chelsea.ursaner@lacity.org",
-              password = "California1$")
+              password = user_password)
 
 # If we run into issues and need to manually update
 # write.csv(new_dataset, "water_capture_by_method.csv", row.names=F)
