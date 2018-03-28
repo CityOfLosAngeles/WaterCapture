@@ -187,11 +187,15 @@ incidental_capture = sum(incidental_LA_total, incidental_SFV_total)
 ## GREEN INFRASTRUCTURE
 # Read GI projects dataset
 GI <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Green-Infrastructure-Water-Capture-Capacity/pdbw-x3k8")
-
-# Split by project type - need updated dataset
+# Limit to LA city
+GI <- filter(GI, LA.City.Water.Supply == "Yes")
 
 # Total capture via this method
 GI_capture = sum(GI$Drainage.Area...Acres.) * LA_precip
+
+# Green Streets and Alleys capture
+GSA <- filter(GI, Green.Street...Alley == "Yes")
+GSA_capture = sum(GSA$Drainage.Area...Acres.) * LA_precip
 
 ## FINAL DATASET
 # Read table of total capture 
@@ -199,13 +203,13 @@ total_capture <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable
 
 # Create data frame to replace dataset - can switch to append later if we want
 # Record today's date time stamp and the capture per method
-new_row <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, incidental_capture,	GI_capture)
+new_row <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, incidental_capture,	GI_capture, GSA_capture)
 new_row$combined <- sum(spreading_capture, barrels_and_cisterns_capture, incidental_capture, GI_capture)
 new_row$rain_in <- LA_precip
+glimpse(total_capture)
+names(new_row) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capture", "incidental_capture",	"gi_capture", "green_streets_and_alleys_capture", "total_capture", "rain_in")
 
-names(new_row) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capture", "incidental_capture",	"gi_capture", "total_capture", "rain_in")
-
-names(total_capture) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capture", "incidental_capture",	"gi_capture", "total_capture", "rain_in")
+names(total_capture) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capture", "incidental_capture",	"gi_capture", "green_streets_and_alleys_capture", "total_capture", "rain_in")
 
 new_dataset <- rbind(total_capture, new_row)
 
