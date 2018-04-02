@@ -191,11 +191,11 @@ GI <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Green
 GI <- filter(GI, LA.City.Water.Supply == "Yes")
 
 # Total capture via this method
-GI_capture = sum(GI$Drainage.Area...Acres.) * LA_precip
+GI_capture = sum(GI$Drainage.Area...Acres., na.rm=T) * LA_precip
 
 # Green Streets and Alleys capture
 GSA <- filter(GI, Green.Street...Alley == "Yes")
-GSA_capture = sum(GSA$Drainage.Area...Acres.) * LA_precip
+GSA_capture = sum(GSA$Drainage.Area...Acres., na.rm=T) * LA_precip
 
 ## FINAL DATASET
 # Read table of total capture 
