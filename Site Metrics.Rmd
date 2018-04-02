@@ -242,9 +242,10 @@ new_row <- data.frame(now(), spreading_capture, barrels_and_cisterns_capture, in
 new_row$combined <- sum(spreading_capture, barrels_and_cisterns_capture, incidental_capture, GI_capture)
 new_row$rain_in <- LA_precip
 
-names(new_row) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capture", "incidental_capture",	"gi_capture", "total_capture", "rain_in")
+names(new_row) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capture", "incidental_capture",	"gi_capture", "green_streets_and_alleys_capture", "total_capture", "rain_in")
 
-names(total_capture) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capture", "incidental_capture",	"gi_capture", "total_capture", "rain_in")
+names(total_capture) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capture", "incidental_capture",	"gi_capture", "green_streets_and_alleys_capture", "total_capture", "rain_in")
+
 
 new_dataset <- rbind(total_capture, new_row)
 
