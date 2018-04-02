@@ -211,14 +211,26 @@ names(new_row) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capt
 
 names(total_capture) <- c("timestamp", "spreading_capture", "barrels_and_cisterns_capture", "incidental_capture",	"gi_capture", "green_streets_and_alleys_capture", "total_capture", "rain_in")
 
-new_dataset <- rbind(total_capture, new_row)
+# check whether it has rained since the data were last posted
+last_rain <- total_capture$rain_in[length(total_capture$rain_in)]
+current_rain <- new_row$rain_in
 
-# Write table to Socrata using RSocrata package
-# Set password
-user_password <- readLines("password.txt")
+# if the current rainfall total is not equal to the previous rainfall total
+# then update the data
+if (current_rain != last_rain) {
+  new_dataset <- rbind(total_capture, new_row)
 
-write.socrata(dataframe = new_dataset,
-              dataset_json_endpoint = "https://data.lacity.org/resource/xe35-4wsy.json",
-              update_mode = "REPLACE",
-              email = "chelsea.ursaner@lacity.org",
-              password = user_password)
+  # Write table to Socrata using RSocrata package
+  # Set password
+  user_password <- readLines("password.txt")
+
+  write.socrata(dataframe = new_dataset,
+                dataset_json_endpoint = "https://data.lacity.org/resource/xe35-4wsy.json",
+                update_mode = "REPLACE",
+                email = "chelsea.ursaner@lacity.org",
+                password = user_password)
+
+}
+
+
+
