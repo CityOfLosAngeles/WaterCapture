@@ -227,7 +227,7 @@ if (current_rain != last_rain) {
   write.socrata(dataframe = new_dataset,
                 dataset_json_endpoint = "https://data.lacity.org/resource/xe35-4wsy.json",
                 update_mode = "REPLACE",
-                email = "chelsea.ursaner@lacity.org",
+                email = "adam.scherling@lacity.org",
                 password = user_password)
 
 }
