@@ -217,7 +217,7 @@ current_rain <- new_row$rain_in
 
 # if the current rainfall total is not equal to the previous rainfall total
 # then update the data
-if (current_rain != last_rain) {
+if (round(current_rain,2) != round(last_rain,2)) {
   new_dataset <- rbind(total_capture, new_row)
 
   # Write table to Socrata using RSocrata package
