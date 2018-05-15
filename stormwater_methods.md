@@ -4,6 +4,13 @@ The stormwater data were collected starting in April 2018. The methods were...
 
 
 <table>
+<colgroup>
+	<col style="width: 20%">
+	<col style="width: 20%">
+	<col style="width: 20%">
+	<col style="width: 20%">
+	<col style="width: 20%">
+</colgroup>
 <tr><th>Category</th><th>Relevant Socrata URL</th><th>Calculation for volume captured</th><th>Metrics (per water season)</th><th>Refresh Rate (i.e. monthly)</th></tr>
 <tr><td>Water Capture Total - All Methods</td><td>Water Capture by Method</td><td>Sum of water captured by method</td><td>Volume captured by method in acre ft; Water capture over time by month (starting with first month of launch) across all capture categories so color should be uniform; % capture designated for water supply</td><td>NA - automated</td></tr>
 <tr><td>Spreading Grounds</td><td>LA City Spreading Grounds Monthly Capture<br>Original source - LA County DPW Conserved water by year<br>Note that the City is concerned with the five facilities in the San Fernando Valley</td><td>None - taken directly from County reporting</td><td>Volume captured (total this season); number of current projects;<br>% capture designated for water supply: 100%</td><td>Monthly (previous month’s data comes out during following month)</td></tr>
