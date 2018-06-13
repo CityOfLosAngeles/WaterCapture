@@ -191,11 +191,13 @@ GI <- read.socrata("https://data.lacity.org/A-Livable-and-Sustainable-City/Green
 GI <- filter(GI, LA.City.Water.Supply == "Yes")
 
 # Total capture via this method
-GI_capture = sum(GI$Drainage.Area...Acres., na.rm=T) * LA_precip
+# divide by 12 since formula expects rain in feet, not inches
+GI_capture = sum(GI$Drainage.Area...Acres., na.rm=T) * LA_precip / 12
 
 # Green Streets and Alleys capture
+# divide by 12 since formula expects rain in feet, not inches
 GSA <- filter(GI, Green.Street...Alley == "Yes")
-GSA_capture = sum(GSA$Drainage.Area...Acres., na.rm=T) * LA_precip
+GSA_capture = sum(GSA$Drainage.Area...Acres., na.rm=T) * LA_precip / 12
 
 ## FINAL DATASET
 # Read table of total capture 
@@ -221,13 +223,14 @@ if (round(current_rain,2) != round(last_rain,2)) {
   new_dataset <- rbind(total_capture, new_row)
 
   # Write table to Socrata using RSocrata package
-  # Set password
+  # Get username and password
+  username <- readLines("username.txt")
   user_password <- readLines("password.txt")
 
   write.socrata(dataframe = new_dataset,
                 dataset_json_endpoint = "https://data.lacity.org/resource/xe35-4wsy.json",
                 update_mode = "REPLACE",
-                email = "adam.scherling@lacity.org",
+                email = username,
                 password = user_password)
 
 }
